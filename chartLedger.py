@@ -19,12 +19,19 @@ def fillChart(chart, ledger):
             A Column - Number of charts
             B Column - Value in the chart
     ------------------------------------------
+    Operation
+    ------------------------------------------
     ---> The Search
         The function will take the input files and assign both in a variable for each one.
         Next, the function will get a value from "sheetchart" variable and searches this value in the first column  from "sheetLedger" variable.
-        If the values are equals, it get a value from respective row, but from second column and sum in the "valueBColumn" variable. This variable will be assign in the output file. 
+        If the values are equals, it get a value from respective row, but from second column and add in the "valueBColumn" variable. 
+        This variable will be assign in the output file. 
     ------------------------------------------
     ---> The combination of Values
+        The second part of the code will combine values from the same branch of the tree.
+        First, the code looks for cells where the values are equal to zero (if different, it skips to the next iteration).
+        Then store that value and string length in separate variables.
+        The value will be the search key for sub-values, and the length will be the limiter to not get values from different branches.  
     """
 
     #created a .XLSX file to fill with new datas
@@ -65,14 +72,50 @@ def fillChart(chart, ledger):
         except:
             print('Error! Impossible save the file!')
 
+    #Second part! Combination of values
+    #-------------------------------------------------------------
+
+    max_rowOut = out_plan1.max_row #take the last row from sheet out_plan1
+
+    #first loop. It get a first value equal zero, and search subvalues to add.
+    for i in range(2, max_rowOut+1):
+        
+        valueOutV = out_plan1.cell(row=i, column=2).value
+
+        if valueOutV != 0: #if the value from B column not be zero, it jump the loop
+            continue
+        else:
+            valueOutC = out_plan1.cell(row=i, column=1).value #value that will be used to get subvalues
+            newSum = 0.0
+            lenGetValue = len(valueOutC) #get a length from origin value. It will be a paramenter for limit of subvalues
+
+            #Second loop. This will search for subvalues
+            for j in range(2, max_rowOut+1):
+                tempC = out_plan1.cell(row=j, column=1).value
+                tempV = round(float(out_plan1.cell(row=j, column=2).value), 2)
+
+                #if the subvalue equals search value, this will be add to var 'newSum'
+                if valueOutC == tempC[:lenGetValue]:
+                    newSum += tempV
+
+            #write the newSum value in the output file
+            out_plan1.cell(row=i, column=2, value=newSum)
+
     #save the output file in the "output" diretory and close it
-    out_chart_of_accounts.save('output/teste01.xlsx')
-    out_chart_of_accounts.close()
+    try:
+        out_chart_of_accounts.save('output/out_chart_of_accounts.xlsx')
+        out_chart_of_accounts.close()
+    except:
+        print('Error! Unable to save file. Check write permission for the folder!')
     #RETURN
     #None file will be returned. The new file will be saved in the "output" diretory
 
 #load files from input diretory
-chart_of_accounts = load_workbook('input/chart_of_accounts.xlsx')
-general_ledger = load_workbook('input/general_ledger.xlsx')
 
-fillChart(chart_of_accounts, general_ledger)
+try:
+    chart_of_accounts = load_workbook('input/chart_of_accounts.xlsx')
+    general_ledger = load_workbook('input/general_ledger.xlsx')
+
+    fillChart(chart_of_accounts, general_ledger)
+except:
+    print('Error! Unable to load files!')
