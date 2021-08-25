@@ -60,11 +60,15 @@ def fillChart(chart, ledger):
         for j in range(2, maxrowLedger+1):
             valueCh = sheetLedger.cell(row=j, column=1).value #get chart name
             valueLe = sheetLedger.cell(row=j, column=2).value #get chart value
-            valueLeFl = round(float(valueLe), 2) #convert str to float
+            try:
+                valueLeFl = round(float(valueLe), 2) #convert str to float
 
-            #if the values are equal, increment in the var valueBColumn
-            if valueCh == searchValue:
-                valueBColumn += valueLeFl
+                #if the values are equal, increment in the var valueBColumn
+                if valueCh == searchValue:
+                    valueBColumn += valueLeFl
+            except:
+                #Probable error when converting to float 
+                continue            
 
         try:    #write values from columns A and B in the output file, with a ERROR test
             out_plan1.cell(row=i, column=1, value=searchValue)
@@ -92,11 +96,16 @@ def fillChart(chart, ledger):
             #Second loop. This will search for subvalues
             for j in range(2, max_rowOut+1):
                 tempC = out_plan1.cell(row=j, column=1).value
-                tempV = round(float(out_plan1.cell(row=j, column=2).value), 2)
 
-                #if the subvalue equals search value, this will be add to var 'newSum'
-                if valueOutC == tempC[:lenGetValue]:
-                    newSum += tempV
+                try:
+                    tempV = round(float(out_plan1.cell(row=j, column=2).value), 2)
+
+                    #if the subvalue equals search value, this will be add to var 'newSum'
+                    if valueOutC == tempC[:lenGetValue]:
+                        newSum += tempV
+                except:
+                    #Probable error when converting to float 
+                    continue
 
             #write the newSum value in the output file
             out_plan1.cell(row=i, column=2, value=newSum)
